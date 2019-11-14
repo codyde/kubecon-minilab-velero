@@ -35,7 +35,7 @@ k8s-start
 
 ```
 
-### Step 2: Set our Variables
+### Step 2: Set Our Variables
 
 Execute the following command to save our External IP and External FQDN as variables for usage later.
 
@@ -312,7 +312,7 @@ default          kubecon-minilab-kc                         1/1     Running     
 default          kubecon-minilab-ll                         1/1     Running     1          4h20m
 ```
 
-### Step 8: Daily Backup with Velero
+### Step 8: Scheduling Backups
 
 In the previous example we used the on demand backup capability of Velero, but we can also schedule backups, as well as schedule how long to keep the backups.
 
