@@ -1,15 +1,17 @@
 ---
 description: >-
-    Velero (formerly known as Heptio Ark) gives users tools to back up and restore Kubernetes cluster resources and persistent volumes. Velero can be used both in public cloud as well as with on-premises Kubernetes clusters. Backups can be scheduled on demand or scheduled. Once these backups are obtained, cluster operators can restore these backups to their existing cluster as a recovery tool, or other clusters as a migration (or recovery) tool.
-
-    Velero consists of a local server instance that runs within your cluster as well as a command line utility for interacting with the service.
+    Velero (formerly known as Heptio Ark) gives users tools to back up and restore Kubernetes cluster resources and persistent volumes. 
 ---
 
 # Project Velero: Introduction
 
+Velero (formerly known as Heptio Ark) gives users tools to back up and restore Kubernetes cluster resources and persistent volumes. Velero can be used both in public cloud as well as with on-premises Kubernetes clusters. Backups can be scheduled on demand or scheduled. Once these backups are obtained, cluster operators can restore these backups to their existing cluster as a recovery tool, or other clusters as a migration (or recovery) tool.
+
+Velero consists of a local server instance that runs within your cluster as well as a command line utility for interacting with the service.
+
 ## Key Capabilities
 
-* **Backup and Reovery of Resources and Persistent Volumes** - Allows users to backup Kubernetes pods and/or persistent volumes.
+* **Backup and Recovery of Resources and Persistent Volumes** - Allows users to backup Kubernetes pods and/or persistent volumes.
 * **Recovery/Migration** - Restore your pods to your existing cluster, or migrate the application to another cluster. Useful during cluster upgrades or greenfield scenarios.
 
 ### Environment Overview
@@ -109,7 +111,7 @@ aws configure
 
 ```
 
-This will ask you for a few peices of information. Typically we would provide our content from AWS, or another provider, but in this case we will be using our MinIO credentials.
+This will ask you for a few pieces of information. Typically we would provide our content from AWS, or another provider, but in this case we will be using our MinIO credentials.
 
 **AWS Access Key ID: minio**
 **AWS Secret Access Key: minio123**
@@ -167,16 +169,16 @@ kubectl get pods -n velero
 
 You should see the restic provider, as well as the velero pod in a running state.
 
-### Step 6: Our First Velero Back-Up
+### Step 6: Our First Velero Backup
 
-Velero uses selectors on an application to create backups. Our application we deployed previously leverages selectors for each tier. Let's back up the main application.
+Velero uses labels/selectors on an application to create backups. Our application we deployed previously leverages labels for each tier, however if your application used a common label for all components, all of those components would be captured in the Velero backup task. In our case, let's create a backup job for the main frontend of our application.
 
 ```bash
 velero backup create kubecon-app-backup --selector app=kubecon-minilab-app
 
 ```
 
-When you execute the above command, the back-up job will be requested. If we use the following command, we can check the status of the back-up
+When you execute the above command, the backup job will be requested. If we use the following command, we can check the status of the backup
 
 ```bash
 velero backup describe kubecon-app-backup
@@ -222,7 +224,23 @@ Expiration:  2019-12-14 00:07:57 +0000 UTC
 Persistent Volumes: <none included>
 ```
 
-With the phase indicating Completed, we know the backup completed successfully. You can login to the MinIO UI at your `externalip:9000` to inspect the actual backup files, or use the AWS ClI.
+With the phase indicating Completed, we know the backup completed successfully. You can login to the MinIO UI at your `externalip:9000` to inspect the actual backup files, or use the AWS ClI. We can also use the following command to output all backups taken...
+
+```bash
+velero get backups
+
+```
+
+Which provides the following sample output
+
+```bash
+$ velero get backups
+NAME                 STATUS      CREATED                         EXPIRES   STORAGE LOCATION   SELECTOR
+db-backup            Completed   2019-11-12 06:55:23 +0000 UTC   27d       default            tier=backend
+db-backup-role       Completed   2019-11-12 07:03:24 +0000 UTC   27d       default            role=db
+kubecon-app-backup   Completed   2019-11-14 00:07:57 +0000 UTC   29d       default            app=kubecon-minilab-app
+nginx-backup         Completed   2019-11-11 22:28:25 +0000 UTC   27d       default            app=nginx
+```
 
 ### Step 7: Deleting and Restoring Our Application
 
@@ -286,7 +304,7 @@ kubectl get pods
 Sample output is below
 
 ```bash
-ubuntu@ip-172-31-24-15:~$ kubectl get pods -A
+$ kubectl get pods -A
 NAMESPACE        NAME                                       READY   STATUS      RESTARTS   AGE
 default          kubecon-minilab-app                        1/1     Running     0          115s
 default          kubecon-minilab-brm                        1/1     Running     1          4h20m
@@ -294,6 +312,28 @@ default          kubecon-minilab-kc                         1/1     Running     
 default          kubecon-minilab-ll                         1/1     Running     1          4h20m
 ```
 
-### Step 8: Daily Back-Up with Velero
+### Step 8: Daily Backup with Velero
 
-In the previous example we used the on demand backup capability of Velero, but we can also schedule backups, as well as schedule how long to keep the backups. Let's perform a simple example.
+In the previous example we used the on demand backup capability of Velero, but we can also schedule backups, as well as schedule how long to keep the backups.
+
+```bash
+velero schedule create kubecon-app-backup --selector app=kubecon-minilab-app --schedule "0 7 * * *" --ttl 24h0m0s
+
+```
+
+This schedule will create a backup on a daily schedule, and keep each backup for 24 hours. We can output our Velero backup schedules by using the following command
+
+```bash
+velero get schedules
+
+```
+
+Which provides the following sample output
+
+```bash
+$ velero get schedules
+NAME                 STATUS    CREATED                         SCHEDULE    BACKUP TTL   LAST BACKUP   SELECTOR
+kubecon-app-backup   Enabled   2019-11-14 17:00:30 +0000 UTC   0 7 * * *   24h0m0s      8s ago        app=kubecon-minilab-app
+```
+
+This concludes our Velero mini-lab. For more information on Velero, check out the projects webpage at [Velero.io](https://velero.io)
