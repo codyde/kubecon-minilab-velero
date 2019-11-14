@@ -242,7 +242,7 @@ kubecon-app-backup   Completed   2019-11-14 00:07:57 +0000 UTC   29d       defau
 nginx-backup         Completed   2019-11-11 22:28:25 +0000 UTC   27d       default            app=nginx
 ```
 
-### Step 7: Deleting and Restoring Our Application
+### Step 7: Restoring a Workload
 
 Crisis has struck. Well... not really, but we can make it look like it has!
 
