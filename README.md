@@ -225,3 +225,75 @@ Persistent Volumes: <none included>
 With the phase indicating Completed, we know the backup completed successfully. You can login to the MinIO UI at your `externalip:9000` to inspect the actual backup files, or use the AWS ClI.
 
 ### Step 7: Deleting and Restoring Our Application
+
+Crisis has struck. Well... not really, but we can make it look like it has!
+
+```bash
+kubectl delete pod kubecon-minilab-app
+kubectl get pods
+
+```
+
+When we refresh our browser Window for our application, we can see the main page no longer loads. The pod listing shows that our kubecon-minilab-app pod has been deleted. Fortunately, Velero can get us back in business quickly!
+
+```bash
+velero restore create kubecon-minilab-app --from-backup kubecon-app-backup
+
+```
+
+We can then check on the restore status with
+
+```bash
+velero restore describe kubecon-minilab-app
+
+```
+
+This should produce output similar to below!
+
+```bash
+Name:         kubecon-minilab-app
+Namespace:    velero
+Labels:       <none>
+Annotations:  <none>
+
+Phase:  Completed
+
+Backup:  kubecon-app-backup
+
+Namespaces:
+  Included:  *
+  Excluded:  <none>
+
+Resources:
+  Included:        *
+  Excluded:        nodes, events, events.events.k8s.io, backups.velero.io, restores.velero.io, resticrepositories.velero.io
+  Cluster-scoped:  auto
+
+Namespace mappings:  <none>
+
+Label selector:  <none>
+
+Restore PVs:  auto
+```
+
+And finally, when we list out our pods, we should see our application has returned
+
+```bash
+kubectl get pods
+
+```
+
+Sample output is below
+
+```bash
+ubuntu@ip-172-31-24-15:~$ kubectl get pods -A
+NAMESPACE        NAME                                       READY   STATUS      RESTARTS   AGE
+default          kubecon-minilab-app                        1/1     Running     0          115s
+default          kubecon-minilab-brm                        1/1     Running     1          4h20m
+default          kubecon-minilab-kc                         1/1     Running     1          4h20m
+default          kubecon-minilab-ll                         1/1     Running     1          4h20m
+```
+
+### Step 8: Daily Back-Up with Velero
+
+In the previous example we used the on demand backup capability of Velero, but we can also schedule backups, as well as schedule how long to keep the backups. Let's perform a simple example.
