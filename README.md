@@ -57,10 +57,7 @@ lab-info
 We're going to be accessing a web based application in this lab, and we will leverage [Project Contour](https://projectcontour.io) to access the workload. We will configure the entire application upfront - which includes some specific configurations to make it functional for this lab.
 
 ```bash
-kubectl apply -f https://projectcontour.io/quickstart/contour.yaml
-wget https://gist.githubusercontent.com/codyde/5cc4eea515dba6970ef7e39848b73042/raw/e925ca9ec0d623572c1aa768cc0287f904f87b0a/envoy-update.yaml
-sed -i 's/REPLACEME/'"$externalip"'/g' envoy-update.yaml
-kubectl apply -f envoy-update.yaml --force
+curl https://raw.githubusercontent.com/codyde/kubecon-minilab-scripts/master/contour-config.yaml | bash
 
 ```
 
@@ -68,6 +65,7 @@ After these are applied, we can confirm our service has been updated with the ex
 
 ```bash
 kubectl get svc -n projectcontour
+
 ```
 
 You should see the envoy service listed running on ports 80 and 443, example output is below (your IP will be different).
@@ -88,17 +86,10 @@ We need to perform a few tasks to get our environment ready for Velero
 * Deploy our application
 * Install MinIO in our Kubernetes cluster
 
-Execute the below set of commands to perform these tasks.
+We have scripted this configuration for you, and will apply it using the below command.
 
 ```bash
-sudo apt install -y awscli
-kubectl apply -f https://raw.githubusercontent.com/codyde/kubecon-contour-lab/master/pods-and-services.yaml
-wget https://raw.githubusercontent.com/codyde/kubecon-contour-lab/master/contour-final-state.yaml
-sed -i 's/REPLACEME/'"$externalfqdn"'/g' contour-route.yaml
-kubectl apply -f contour-final-state.yaml
-kubectl apply -f https://gist.githubusercontent.com/codyde/222ad38e6331181aac41ef7df643d6bd/raw/b322be100ecd3b32f23efe6a5dca0e5081e911a2/minio-nopvc.yaml
-wget https://gist.githubusercontent.com/codyde/fc61f8dd77830e67db3a72feea628216/raw/1d5d522652bd96fa2cd94f13da1236298e92bdfb/minio-service.yaml
-sed -i 's/REPLACEME/'"$externalip"'/g' minio-service.yaml
+curl https://raw.githubusercontent.com/codyde/kubecon-minilab-scripts/master/velero-apply.yaml | bash
 
 ```
 
@@ -133,9 +124,10 @@ Assuming the command was successful, you should see your bucket listed as the co
 Execute the following commands to pull down the Velero binaries
 
 ```bash
-wget https://github.com/vmware-tanzu/velero/releases/download/v1.1.0/velero-v1.1.0-linux-amd64.tar.gz
-tar -zxvf velero-v1.1.0-linux-amd64.tar.gz
-sudo mv velero-v1.1.0-linux-amd64/velero /usr/local/bin/velero
+wget https://github.com/vmware-tanzu/velero/releases/download/v1.2.0/velero-v1.2.0-linux-amd64.tar.gz
+tar -zxvf velero-v1.2.0-linux-amd64.tar.gz
+sudo mv velero-v1.2.0-linux-amd64/velero /usr/local/bin/velero
+
 ```
 
 We will need to create credentials for Velero to use to communicate with MinIO. Execute the following commands in your terminal window.
@@ -153,11 +145,11 @@ With these preparations in place, we can perform the installation of Velero on o
 
 ```bash
 velero install  --provider aws --bucket velero \
---secret-file ./credentials-velero.ini \
+--secret-file ./velero-credentials.ini \
 --use-volume-snapshots=false \
 --use-restic \
 --backup-location-config \
-region=minio,s3ForcePathStyle="true",s3Url=http://minio.velero.svc:9000,publicUrl=http://$externalip:9000
+region=minio,s3ForcePathStyle="true",s3Url=http://$externalip:9000
 
 ```
 
@@ -165,6 +157,7 @@ We can verify that Velero has completed it installation using the following comm
 
 ```bash
 kubectl get pods -n velero
+
 ```
 
 You should see the restic provider, as well as the velero pod in a running state.
