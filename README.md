@@ -93,9 +93,9 @@ curl https://raw.githubusercontent.com/codyde/kubecon-minilab-scripts/master/vel
 
 ```
 
-Leveraging an secondary browser window, navigate to the FQDN you pulled down earlier. You should see our application deployed successfully! If you append :9000 to the end of the URL, you should see the MinIO UI.
+Leveraging a secondary browser window, navigate to the FQDN you pulled down earlier. You should see our application deployed successfully! If you append :9000 to the end of the URL, you should see the MinIO UI (which has a dedicated tab in Strigo).
 
-We now need to configure the AWS CLI we installed previously
+We now need to configure the AWS CLI. 
 
 ```bash
 aws configure
@@ -133,9 +133,9 @@ sudo mv velero-v1.2.0-linux-amd64/velero /usr/local/bin/velero
 We will need to create credentials for Velero to use to communicate with MinIO. Execute the following commands in your terminal window.
 
 ```bash
-cat <<EOF > velero-credentials.ini
+cat <<EOF > credentials-velero
 [default]
-aws_access_key = minio
+aws_access_key_id = minio
 aws_secret_access_key = minio123
 EOF
 
@@ -145,11 +145,12 @@ With these preparations in place, we can perform the installation of Velero on o
 
 ```bash
 velero install  --provider aws --bucket velero \
---secret-file ./velero-credentials.ini \
+--secret-file ./credentials-velero \
 --use-volume-snapshots=false \
 --use-restic \
 --backup-location-config \
-region=minio,s3ForcePathStyle="true",s3Url=http://$externalip:9000
+region=minio,s3ForcePathStyle="true",s3Url=http://$externalip:9000 \
+--plugins velero/velero-plugin-for-aws:v1.0.0
 
 ```
 
