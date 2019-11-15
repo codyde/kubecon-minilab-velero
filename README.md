@@ -153,6 +153,8 @@ region=minio,s3ForcePathStyle="true",s3Url=http://$externalip:9000
 
 ```
 
+**Note: - In the lab environment, the UI might become a bit cluttered at this point. If you issue a "clear" command in the terminal window, things will get back to normal!**
+
 We can verify that Velero has completed it installation using the following command
 
 ```bash
