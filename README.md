@@ -1,11 +1,12 @@
 ---
 description: >-
-    Velero (formerly known as Heptio Ark) gives users tools to back up and restore Kubernetes cluster resources and persistent volumes. 
+  Velero (formerly known as Heptio Ark) gives users tools to back up and restore
+  Kubernetes cluster resources and persistent volumes.
 ---
 
-# Project Velero: Introduction
+# Introduction to Project Velero
 
-Velero (formerly known as Heptio Ark) gives users tools to back up and restore Kubernetes cluster resources and persistent volumes. Velero can be used both in public cloud as well as with on-premises Kubernetes clusters. Backups can be scheduled on demand or scheduled. Once these backups are obtained, cluster operators can restore these backups to their existing cluster as a recovery tool, or other clusters as a migration (or recovery) tool.
+Velero \(formerly known as Heptio Ark\) gives users tools to back up and restore Kubernetes cluster resources and persistent volumes. Velero can be used both in public cloud as well as with on-premises Kubernetes clusters. Backups can be scheduled on demand or scheduled. Once these backups are obtained, cluster operators can restore these backups to their existing cluster as a recovery tool, or other clusters as a migration \(or recovery\) tool.
 
 Velero consists of a local server instance that runs within your cluster as well as a command line utility for interacting with the service.
 
@@ -32,7 +33,6 @@ Execute the following command to get started in the lab!
 
 ```bash
 k8s-start
-
 ```
 
 ### Step 2: Set Our Variables
@@ -42,14 +42,12 @@ Execute the following command to save our External IP and External FQDN as varia
 ```bash
 export externalip=$(curl -s http://169.254.169.254/latest/meta-data/public-ipv4)
 export externalfqdn=$(curl -s http://169.254.169.254/latest/meta-data/public-hostname)
-
 ```
 
 **Note:** - You can also see this information by running the following command. You will need the external FQDN to use with the web browser on the workstation to view the page that's updated.
 
 ```bash
 lab-info
-
 ```
 
 ### Step 3: Contour Quick-Start
@@ -58,17 +56,15 @@ We're going to be accessing a web based application in this lab, and we will lev
 
 ```bash
 curl https://raw.githubusercontent.com/codyde/kubecon-minilab-scripts/master/contour-config.yaml | bash
-
 ```
 
 After these are applied, we can confirm our service has been updated with the external IP by entering...
 
 ```bash
 kubectl get svc -n projectcontour
-
 ```
 
-You should see the envoy service listed running on ports 80 and 443, example output is below (your IP will be different).
+You should see the envoy service listed running on ports 80 and 443, example output is below \(your IP will be different\).
 
 ```bash
 NAME      TYPE        CLUSTER-IP       EXTERNAL-IP    PORT(S)          AGE
@@ -90,31 +86,31 @@ We have scripted this configuration for you, and will apply it using the below c
 
 ```bash
 curl https://raw.githubusercontent.com/codyde/kubecon-minilab-scripts/master/velero-apply.yaml | bash
-
 ```
 
-Leveraging a secondary browser window, navigate to the FQDN you pulled down earlier. You should see our application deployed successfully! If you append :9000 to the end of the URL, you should see the MinIO UI (which has a dedicated tab in Strigo).
+Leveraging a secondary browser window, navigate to the FQDN you pulled down earlier. You should see our application deployed successfully! If you append :9000 to the end of the URL, you should see the MinIO UI \(which has a dedicated tab in Strigo\).
 
-We now need to configure the AWS CLI. 
+We now need to configure the AWS CLI.
 
 ```bash
 aws configure
-
 ```
 
 This will ask you for a few pieces of information. Typically we would provide our content from AWS, or another provider, but in this case we will be using our MinIO credentials.
 
-**AWS Access Key ID: minio**
-**AWS Secret Access Key: minio123**
-**Default region name: us-west-1**
-**Default output format: leave blank**
+`AWS Access Key ID:` _`minio`_ ``
+
+`AWS Secret Access Key:` _`minio123`_ ``
+
+`Default region name:` _`us-west-1`_
+
+ `Default output format: leave blank`
 
 With these credentials in place, we will use the AWS CLI to create our Velero bucket.
 
 ```bash
 aws --endpoint-url http://$externalip:9000 s3 mb s3://velero
 aws --endpoint-url http://$externalip:9000 s3 ls
-
 ```
 
 Assuming the command was successful, you should see your bucket listed as the command output. We are ready to install Velero!
@@ -127,7 +123,6 @@ Execute the following commands to pull down the Velero binaries
 wget https://github.com/vmware-tanzu/velero/releases/download/v1.2.0/velero-v1.2.0-linux-amd64.tar.gz
 tar -zxvf velero-v1.2.0-linux-amd64.tar.gz
 sudo mv velero-v1.2.0-linux-amd64/velero /usr/local/bin/velero
-
 ```
 
 We will need to create credentials for Velero to use to communicate with MinIO. Execute the following commands in your terminal window.
@@ -138,7 +133,6 @@ cat <<EOF > credentials-velero
 aws_access_key_id = minio
 aws_secret_access_key = minio123
 EOF
-
 ```
 
 With these preparations in place, we can perform the installation of Velero on our target cluster.
@@ -151,7 +145,6 @@ velero install  --provider aws --bucket velero \
 --backup-location-config \
 region=minio,s3ForcePathStyle="true",s3Url=http://$externalip:9000 \
 --plugins velero/velero-plugin-for-aws:v1.0.0
-
 ```
 
 **Note: - In the lab environment, the UI might become a bit cluttered at this point. If you issue a "clear" command in the terminal window, things will get back to normal!**
@@ -160,7 +153,6 @@ We can verify that Velero has completed it installation using the following comm
 
 ```bash
 kubectl get pods -n velero
-
 ```
 
 You should see the restic provider, as well as the velero pod in a running state.
@@ -171,14 +163,12 @@ Velero uses labels/selectors on an application to create backups. Our applicatio
 
 ```bash
 velero backup create kubecon-app-backup --selector app=kubecon-minilab-app
-
 ```
 
 When you execute the above command, the backup job will be requested. If we use the following command, we can check the status of the backup
 
 ```bash
 velero backup describe kubecon-app-backup
-
 ```
 
 Below is a sample output
@@ -224,7 +214,6 @@ With the phase indicating Completed, we know the backup completed successfully. 
 
 ```bash
 velero get backups
-
 ```
 
 Which provides the following sample output
@@ -245,21 +234,18 @@ Crisis has struck. Well... not really, but we can make it look like it has!
 ```bash
 kubectl delete pod kubecon-minilab-app
 kubectl get pods
-
 ```
 
 When we refresh our browser Window for our application, we can see the main page no longer loads. The pod listing shows that our kubecon-minilab-app pod has been deleted. Fortunately, Velero can get us back in business quickly!
 
 ```bash
 velero restore create kubecon-minilab-app --from-backup kubecon-app-backup
-
 ```
 
 We can then check on the restore status with
 
 ```bash
 velero restore describe kubecon-minilab-app
-
 ```
 
 This should produce output similar to below!
@@ -294,7 +280,6 @@ And finally, when we list out our pods, we should see our application has return
 
 ```bash
 kubectl get pods
-
 ```
 
 Sample output is below
@@ -314,14 +299,12 @@ In the previous example we used the on demand backup capability of Velero, but w
 
 ```bash
 velero schedule create kubecon-app-backup --selector app=kubecon-minilab-app --schedule "0 7 * * *" --ttl 24h0m0s
-
 ```
 
 This schedule will create a backup on a daily schedule, and keep each backup for 24 hours. We can output our Velero backup schedules by using the following command
 
 ```bash
 velero get schedules
-
 ```
 
 Which provides the following sample output
@@ -333,3 +316,4 @@ kubecon-app-backup   Enabled   2019-11-14 17:00:30 +0000 UTC   0 7 * * *   24h0m
 ```
 
 This concludes our Velero mini-lab. For more information on Velero, check out the projects webpage at [Velero.io](https://velero.io)
+
